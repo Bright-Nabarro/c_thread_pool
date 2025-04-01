@@ -1,0 +1,10 @@
+file(GLOB src "*.c")
+
+foreach(test_file ${src})
+	message(STATUS "testing ${test_file}")
+	get_filename_component(exe_name ${test_file} NAME_WE)
+	add_executable(${exe_name} ${test_file})
+	target_include_directories(${exe_name} PRIVATE "${CMAKE_SOURCE_DIR}/src")
+	set_target_properties(${exe_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/test/bin")
+	add_test(test_${exe_name} ${CMAKE_SOURCE_DIR}/test/bin/${exe_name})
+endforeach()
