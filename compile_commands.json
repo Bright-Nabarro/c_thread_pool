@@ -1,20 +1,20 @@
 [
 {
-  "directory": "/home/lin17/workspace/contest/thread/thread_pool/build/src",
-  "command": "/usr/sbin/cc -DTHD_POOL_DEBUG -I/home/lin17/workspace/contest/thread/thread_pool/src -g -std=gnu2x -Wall -Wextra -Wuninitialized -o CMakeFiles/thd_pool.dir/thd_pool.c.o -c /home/lin17/workspace/contest/thread/thread_pool/src/thd_pool.c",
-  "file": "/home/lin17/workspace/contest/thread/thread_pool/src/thd_pool.c",
+  "directory": "/home/lin17/Workspace/project/c_thread_pool/build/src",
+  "command": "/usr/bin/cc -DNDEBUG -I/home/lin17/Workspace/project/c_thread_pool/src -O3 -DNDEBUG -std=gnu2x -Wall -Wextra -Wuninitialized -o CMakeFiles/thd_pool.dir/thd_pool.c.o -c /home/lin17/Workspace/project/c_thread_pool/src/thd_pool.c",
+  "file": "/home/lin17/Workspace/project/c_thread_pool/src/thd_pool.c",
   "output": "src/CMakeFiles/thd_pool.dir/thd_pool.c.o"
 },
 {
-  "directory": "/home/lin17/workspace/contest/thread/thread_pool/build/test/unit_test",
-  "command": "/usr/sbin/cc -DTHD_POOL_DEBUG -I/home/lin17/workspace/contest/thread/thread_pool/src -g -std=gnu2x -Wall -Wextra -Wuninitialized -o CMakeFiles/pool.dir/pool.c.o -c /home/lin17/workspace/contest/thread/thread_pool/test/unit_test/pool.c",
-  "file": "/home/lin17/workspace/contest/thread/thread_pool/test/unit_test/pool.c",
+  "directory": "/home/lin17/Workspace/project/c_thread_pool/build/test/unit_test",
+  "command": "/usr/bin/cc -DNDEBUG -I/home/lin17/Workspace/project/c_thread_pool/src -O3 -DNDEBUG -std=gnu2x -Wall -Wextra -Wuninitialized -o CMakeFiles/pool.dir/pool.c.o -c /home/lin17/Workspace/project/c_thread_pool/test/unit_test/pool.c",
+  "file": "/home/lin17/Workspace/project/c_thread_pool/test/unit_test/pool.c",
   "output": "test/unit_test/CMakeFiles/pool.dir/pool.c.o"
 },
 {
-  "directory": "/home/lin17/workspace/contest/thread/thread_pool/build/test/unit_test",
-  "command": "/usr/sbin/cc -DTHD_POOL_DEBUG -I/home/lin17/workspace/contest/thread/thread_pool/src -g -std=gnu2x -Wall -Wextra -Wuninitialized -o CMakeFiles/queue.dir/queue.c.o -c /home/lin17/workspace/contest/thread/thread_pool/test/unit_test/queue.c",
-  "file": "/home/lin17/workspace/contest/thread/thread_pool/test/unit_test/queue.c",
+  "directory": "/home/lin17/Workspace/project/c_thread_pool/build/test/unit_test",
+  "command": "/usr/bin/cc -DNDEBUG -I/home/lin17/Workspace/project/c_thread_pool/src -O3 -DNDEBUG -std=gnu2x -Wall -Wextra -Wuninitialized -o CMakeFiles/queue.dir/queue.c.o -c /home/lin17/Workspace/project/c_thread_pool/test/unit_test/queue.c",
+  "file": "/home/lin17/Workspace/project/c_thread_pool/test/unit_test/queue.c",
   "output": "test/unit_test/CMakeFiles/queue.dir/queue.c.o"
 }
 ]

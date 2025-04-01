@@ -21,6 +21,7 @@
 	{                                                                          \
 		fprintf(stderr, msg "\n" __VA_OPT__(, ) __VA_ARGS__);                  \
 	} while (0)
+
 #define DEBUG_PRINT_EC(msg, ec, ...)                                           \
 	do                                                                         \
 	{                                                                          \
@@ -48,9 +49,15 @@ typedef struct _queue
     pthread_cond_t q_cond;
 } queue;
 
+typedef struct _thd
+{
+	pthread_t t_pthd;
+	int t_id;
+} thd;
+
 typedef struct _thd_pool
 {
-    pthread_t* p_thds;
+    thd* p_thds;
     size_t p_thds_size;
 	pthread_barrier_t p_start;
     queue* p_que;
@@ -58,11 +65,11 @@ typedef struct _thd_pool
     atomic_bool p_working;
 } thd_pool;
 
-struct thd_args
+typedef struct _thd_arg
 {
-	
-};
-
+	thd_pool* pool;
+	int id;
+} thd_arg;
 
 /*
  *    STATIC DECLARE
@@ -158,7 +165,7 @@ thd_pool* thd_pool_create(size_t thd_size, thd_pool_error_code* ec)
 	int err;
 	thd_pool* ppool = malloc(sizeof(thd_pool));
 	ERR_PTR(ppool, ec, return nullptr);
-	ppool->p_thds = malloc(thd_size * sizeof(pthread_t));
+	ppool->p_thds = malloc(thd_size * sizeof(thd));
 	ERR_PTR(ppool->p_thds, ec, return nullptr);
 
 	ppool->p_thds_size = thd_size;
@@ -172,8 +179,12 @@ thd_pool* thd_pool_create(size_t thd_size, thd_pool_error_code* ec)
 
 	for (size_t i = 0; i < thd_size; ++i)
 	{
-		err = pthread_create(&ppool->p_thds[i], NULL, thd_fn, ppool);
-		DEBUG_PRINT("main thread: pthread %lx created", ppool->p_thds[i]);
+		thd_arg* parg = malloc(sizeof(thd_arg));
+		parg->pool = ppool;
+		parg->id = i+1;
+		err = pthread_create(&ppool->p_thds[i].t_pthd, NULL, thd_fn, parg);
+		ppool->p_thds[i].t_id = i+1;
+		DEBUG_PRINT("main thread: thd %d created", ppool->p_thds[i].t_id);
 		ERR_INT(err, ec, return nullptr);
 	}
 	DEBUG_PRINT("main thread pool create %zu thread success", thd_size);
@@ -211,12 +222,12 @@ int thd_pool_destroy(thd_pool* pool, thd_pool_error_code** ecs)
 	{
 		void* ret;
 		int ec;
-		err = pthread_join(pool->p_thds[i], &ret);
+		err = pthread_join(pool->p_thds[i].t_pthd, &ret);
 		ERR_INT(err, &ec, result = -1);
 		ERR_INT((int)(long)ret, &ec, result = -1);
 		if (ecs != nullptr)
 			ecs[i] = &ec;
-		DEBUG_PRINT("main thread: pthread %lx joined", pthread_self());
+		DEBUG_PRINT("main thread: thd %d joined", pool->p_thds[i].t_id);
 	}
 
 	DEBUG_PRINT("main thread: all thread joined");
@@ -265,6 +276,11 @@ static thd_pool_error_code err_int2err_enum(int ec)
 // need lock queue outside
 static inline bool queue_empty(queue* pque)
 {
+	assert( !(
+		(pque->q_sentinel->j_next == nullptr)
+	&& !(pque->q_sentinel == pque->q_tail)
+		));
+
 	return pque->q_sentinel->j_next == nullptr;
 }
 
@@ -273,6 +289,9 @@ static inline job* queue_deque(queue* pque)
 	assert(!queue_empty(pque));
 	job* pjob = pque->q_sentinel->j_next;
 	pque->q_sentinel->j_next = pque->q_sentinel->j_next->j_next;
+	
+	if (pque->q_sentinel->j_next == nullptr)
+		pque->q_tail = pque->q_sentinel;
 	return pjob;
 }
 
@@ -327,62 +346,52 @@ static void queue_destroy(queue* pque, thd_pool_error_code* ec)
 
 static void* thd_fn(void* arg)
 {
-	thd_pool* ppl = (thd_pool*) arg;
+	thd_arg* parg = arg;
+	thd_pool* ppl = parg->pool;
+	int thd_id = parg->id;
+	free(parg);
 	queue* pque = ppl->p_que;
 	thd_pool_error_code result = 0;
 	int err;
-	DEBUG_PRINT("pthread %lx before barrier wait", pthread_self());
+	DEBUG_PRINT("thd %d before barrier wait", thd_id);
 	err = pthread_barrier_wait(&ppl->p_start);
 	if (err != 0 && err != PTHREAD_BARRIER_SERIAL_THREAD)
 	{
 		ERR_INT(err, &result, return (void*)(long)result);
 	}
-	DEBUG_PRINT("pthread %lx after barrier wait", pthread_self());
+	DEBUG_PRINT("thd %d after barrier wait", thd_id);
 
 	while(true)
 	{
 		err = pthread_mutex_lock(&pque->q_mtx);	
 		ERR_INT(err, &result, return (void*)(long)result);
-		// 只有当队列消耗完毕并且working flag为false时线程走向完结
-		if (queue_empty(pque) && !atomic_load(&ppl->p_working))
-		{
-			err = pthread_mutex_unlock(&pque->q_mtx);
-			ERR_INT(err, &result, return (void*)(long)result);
-			break;
-		}
 		
+		// 只有当队列消耗完毕并且working flag为false时线程走向完结
 		while(queue_empty(pque))
 		{
+			if (!atomic_load(&ppl->p_working))
+			{
+				err = pthread_mutex_unlock(&pque->q_mtx);
+				ERR_INT(err, &result, );
+				DEBUG_PRINT("thd %d end in mid", thd_id);
+				return (void*)(long)result;
+			}
 			err = pthread_cond_wait(&pque->q_cond, &pque->q_mtx);
 			ERR_INT(err, &result, return (void*)(long)result);
-			if (queue_empty(pque))
-			{
-				if (!atomic_load(&ppl->p_working))
-				{
-					err = pthread_mutex_unlock(&pque->q_mtx);
-					ERR_INT(err, &result, );
-					DEBUG_PRINT("pthread %lx end in mid", pthread_self());
-					return (void*)(long)result;
-				}
-				else
-				{
-					break;
-				}
-			}
 		}
 		
 		job* value = queue_deque(pque);
-		DEBUG_PRINT("pthread %lx take out job from queue", pthread_self());
+		DEBUG_PRINT("thd %d take out job from queue", thd_id);
 
 		err = pthread_mutex_unlock(&pque->q_mtx);
 		ERR_INT(err, &result, return (void*)(long)result);
 
 		value->j_func(value->j_param);
 		job_destroy(value);
-		DEBUG_PRINT("pthread %lx consume job", pthread_self());
+		DEBUG_PRINT("thd %d consume job", thd_id);
 	}
 	
-		DEBUG_PRINT("pthread %lx end in last", pthread_self());
+	DEBUG_PRINT("thd %d end in last", thd_id);
 	return (void*)(long)result;
 }
 
