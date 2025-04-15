@@ -43,6 +43,7 @@ void* thread_fn(void* vargs)
 	int* ec = calloc(1, sizeof(int));
 	thd_arg* arg = vargs;
 	ctp_thdpool* tp = arg->tp;
+	free(vargs);
 
 	*ec = pthread_barrier_wait(&tp->start_bar);
 	if (*ec != 0 && *ec != PTHREAD_BARRIER_SERIAL_THREAD)
@@ -64,7 +65,6 @@ void* thread_fn(void* vargs)
 		do_job(job);
 	}
 
-	free(vargs);
 	return ec;
 }
 

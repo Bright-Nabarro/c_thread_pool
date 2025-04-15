@@ -117,15 +117,15 @@ void ctp_queue_push(ctp_queue* pque, void* value, int* pec)
 	ERR_INT(ec, pec, return);
 
 	// 短暂持头锁
-	ec = pthread_mutex_lock(&pque->head_mtx);
-	ERR_INT(ec, pec, return);
+	//ec = pthread_mutex_lock(&pque->head_mtx);
+	//ERR_INT(ec, pec, return);
 	ec = pthread_cond_signal(&pque->cond);
 	ERR_INT(ec, pec, {
 		pthread_mutex_unlock(&pque->head_mtx);
 		return;
 	});
-	ec = pthread_mutex_unlock(&pque->head_mtx);
-	ERR_INT(ec, pec, return);
+	//ec = pthread_mutex_unlock(&pque->head_mtx);
+	//ERR_INT(ec, pec, return);
 }
 
 static ctp_node* queue_get_tail(ctp_queue* pque, int* pec)

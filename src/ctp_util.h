@@ -62,8 +62,8 @@
 	} while (0)
 
 #else
-#define DPT 
-#define THDPT 
+#define DPT(msg, ...)
+#define THDPT(msg, ...) 
 #endif
 
 

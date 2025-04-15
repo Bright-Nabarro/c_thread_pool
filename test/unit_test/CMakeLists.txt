@@ -2,6 +2,8 @@ set(targets
 	queue_st
 	queue_mt
 	thd_pool
+	logger
+	logger_cvn
 )
 
 foreach(target ${targets})

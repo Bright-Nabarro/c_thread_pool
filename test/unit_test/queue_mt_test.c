@@ -453,6 +453,7 @@ static void test_queue_wait_terminate_multi_thread(
 int main()
 {
 	test_push_wait_pop_base();
+	test_push_wait_pop_more_thds(1);
 	test_push_wait_pop_more_thds(2);
 	test_push_wait_pop_more_thds(20);
 	test_push_try_pop(2);
