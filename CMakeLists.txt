@@ -20,12 +20,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 add_subdirectory(src)
 
-add_custom_target(move_compile_commands ALL
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			"${CMAKE_BINARY_DIR}/compile_commands.json"
-			"${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json"
-	DEPENDS "${CMAKE_BINARY_DIR}/compile_commands.json"
-)
+if(PROJECT_IS_TOP_LEVEL OR FORCE_GENERATE_COMPILE_COMMANDS)
+	message(STATUS "add move_compile_commands target")
+    add_custom_target(move_compile_commands ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_BINARY_DIR}/compile_commands.json"
+                "${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json"
+        DEPENDS "${CMAKE_BINARY_DIR}/compile_commands.json"
+    )
+endif()
 
 if (ENABLE_TEST)
 	enable_testing()
