@@ -30,7 +30,8 @@ if(PROJECT_IS_TOP_LEVEL OR FORCE_GENERATE_COMPILE_COMMANDS)
     )
 endif()
 
-if (ENABLE_TEST)
+
+if((PROJECT_IS_TOP_LEVEL OR FORCE_GENERATE_COMPILE_COMMANDS) AND ENABLE_TEST)
 	enable_testing()
 	add_subdirectory(test/unit_test)
 endif()
