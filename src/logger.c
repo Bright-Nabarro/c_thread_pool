@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
 #include <stdatomic.h>
 #include "ctp/thd_pool.h"
@@ -152,7 +151,10 @@ void ctp_logger_async_output(ctp_logger_context* context, char* msg, int* pec)
 						ctp_logger_async_clean_arg, pec);
 }
 
-static
+/****
+ * INTERFACE IMPLEMENT
+ ****/
+
 int ctp_logger_logv(ctp_logger_context* context, ctp_log_level level,
 					const char* fmt, va_list args)
 {
@@ -182,10 +184,6 @@ int ctp_logger_logv(ctp_logger_context* context, ctp_log_level level,
 	return ec;
 
 }
-
-/****
- * INTERFACE IMPLEMENT
- ****/
 
 void ctp_logger_config_default(ctp_logger_config* config)
 {
@@ -227,11 +225,16 @@ void ctp_logger_global_init(const ctp_logger_config* config)
 	atomic_store(&global_context_initial_flag, true);
 }
 
+void ctp_logger_global_logv(ctp_log_level level, const char* fmt, va_list args)
+{
+	ctp_logger_logv(&global_context, level, fmt, args);
+}
+
 void ctp_logger_global_log(ctp_log_level level, const char* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	ctp_logger_logv(&global_context, level, fmt, args);
+	ctp_logger_global_logv(level, fmt, args);
 	va_end(args);
 }
 

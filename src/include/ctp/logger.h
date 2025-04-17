@@ -1,6 +1,7 @@
 #pragma once
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 typedef enum
 {
@@ -30,10 +31,14 @@ typedef struct ctp_logger_context ctp_logger_context;
 void ctp_logger_config_default(ctp_logger_config* config);
 ctp_logger_context* ctp_logger_init(const ctp_logger_config* config,
 										  int* ec);
+
+int ctp_logger_logv(ctp_logger_context* context, ctp_log_level level,
+					const char* fmt, va_list args);
 int ctp_logger_log(ctp_logger_context* context, ctp_log_level level,
 					const char* fmt, ...);
 void ctp_logger_close(ctp_logger_context* context, int* ec);
 
 void ctp_logger_global_init(const ctp_logger_config* config);
 void ctp_logger_global_log(ctp_log_level level, const char* fmt, ...);
+void ctp_logger_global_logv(ctp_log_level level, const char* fmt, va_list args);
 void ctp_logger_global_close();
