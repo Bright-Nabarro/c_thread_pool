@@ -34,7 +34,6 @@ static void do_job(ctp_job* job)
 	if (job->cleanup)
 		job->cleanup(job->args);
 	free(job);
-
 }
 
 static
@@ -49,7 +48,7 @@ void* thread_fn(void* vargs)
 	if (*ec != 0 && *ec != PTHREAD_BARRIER_SERIAL_THREAD)
 		return ec;
 
-	while (atomic_load(&tp->shutdown) || !ctp_queue_empty(tp->que, ec))
+	while (!atomic_load(&tp->shutdown) || !ctp_queue_empty(tp->que, ec))
 	{
 		ERR_PEC(ec, return ec);
 
