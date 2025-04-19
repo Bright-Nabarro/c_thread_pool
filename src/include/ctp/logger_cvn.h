@@ -1,7 +1,7 @@
 #pragma once
 #include "logger.h"
 
-void ctp_log(ctp_log_level level, const char* fmt, ...);
+void ctp_log(ctp_log_level_t level, const char* fmt, ...);
 
 #define LOG_DEBUG(fmt, ...) \
 	ctp_log(ctp_debug, fmt __VA_OPT__(,) __VA_ARGS__);

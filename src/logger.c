@@ -19,31 +19,31 @@ typedef struct ctp_logger_context
 {
 	bool async;
 	FILE* out;
-	ctp_thdpool* pool;
+	ctp_thdpool_t* pool;
 	size_t buffer_size;
-} ctp_logger_context;
+} ctp_logger_context_t;
 
 typedef struct ctp_async_arg
 {
-	ctp_logger_context* context;
+	ctp_logger_context_t* context;
 	char* msg;
 } ctp_async_arg;
 
-const static ctp_logger_config default_config = {
+const static ctp_logger_config_t default_config = {
 	.log_file = NULL,
 	.async = false,
 	.msg_max_len = 8191,
 	//.include_file_info = false,
 };
 
-static ctp_logger_config global_config = default_config;
+static ctp_logger_config_t global_config = default_config;
 
-static ctp_logger_context global_context;
+static ctp_logger_context_t global_context;
 
 static atomic_bool global_context_initial_flag = false;
 
 static
-char* get_ctp_log_level_str(ctp_log_level level)
+char* get_ctp_log_level_str(ctp_log_level_t level)
 {
 	switch(level)
 	{
@@ -61,8 +61,8 @@ char* get_ctp_log_level_str(ctp_log_level level)
 }
 
 static
-void ctp_init_logger_context(ctp_logger_context* context,
-									const ctp_logger_config* config,
+void ctp_init_logger_context(ctp_logger_context_t* context,
+									const ctp_logger_config_t* config,
 									int* pec)
 {
 	context->async = config->async;
@@ -87,7 +87,7 @@ void ctp_init_logger_context(ctp_logger_context* context,
 }
 
 static
-void ctp_close_logger_context(ctp_logger_context* context, int* pec)
+void ctp_close_logger_context(ctp_logger_context_t* context, int* pec)
 {
 	if (context->async)
 	{
@@ -99,8 +99,8 @@ void ctp_close_logger_context(ctp_logger_context* context, int* pec)
 		fclose(context->out);
 }
 
-static void ctp_logger_output_string(char* buffer, const ctp_logger_context* context,
-									 ctp_log_level level, const char* fmt, va_list args)
+static void ctp_logger_output_string(char* buffer, const ctp_logger_context_t* context,
+									 ctp_log_level_t level, const char* fmt, va_list args)
 {
 	size_t offset = 0, bias;
 	// print level
@@ -118,7 +118,7 @@ static void ctp_logger_output_string(char* buffer, const ctp_logger_context* con
 }
 
 static
-void ctp_logger_sync_output(ctp_logger_context* context, char* msg)
+void ctp_logger_sync_output(ctp_logger_context_t* context, char* msg)
 {
 	fprintf(context->out, "%s\n", msg);
 	free(msg);
@@ -141,7 +141,7 @@ void ctp_logger_async_output_callback(void* varg)
 }
 
 static
-void ctp_logger_async_output(ctp_logger_context* context, char* msg, int* pec)
+void ctp_logger_async_output(ctp_logger_context_t* context, char* msg, int* pec)
 {
 	ctp_async_arg* arg = malloc(sizeof(ctp_async_arg));
 	ERR_PTR_ERRNO(arg, pec, return);
@@ -155,7 +155,7 @@ void ctp_logger_async_output(ctp_logger_context* context, char* msg, int* pec)
  * INTERFACE IMPLEMENT
  ****/
 
-int ctp_logger_logv(ctp_logger_context* context, ctp_log_level level,
+int ctp_logger_logv(ctp_logger_context_t* context, ctp_log_level_t level,
 					const char* fmt, va_list args)
 {
 	if (level == ctp_debug && !debug_flag)
@@ -185,15 +185,15 @@ int ctp_logger_logv(ctp_logger_context* context, ctp_log_level level,
 
 }
 
-void ctp_logger_config_default(ctp_logger_config* config)
+void ctp_logger_config_default(ctp_logger_config_t* config)
 {
 	*config = default_config;
 }
 
-ctp_logger_context* ctp_logger_init(const ctp_logger_config* config, int* pec)
+ctp_logger_context_t* ctp_logger_init(const ctp_logger_config_t* config, int* pec)
 {
 	INI_EC(pec);
-	ctp_logger_context* context = malloc(sizeof(ctp_logger_context));
+	ctp_logger_context_t* context = malloc(sizeof(ctp_logger_context_t));
 	ERR_PTR_ERRNO(context, pec, return NULL);
 	ctp_init_logger_context(context, config, pec);
 	ERR_PEC(pec, return NULL);
@@ -201,14 +201,14 @@ ctp_logger_context* ctp_logger_init(const ctp_logger_config* config, int* pec)
 	return context;
 }
 
-void ctp_logger_close(ctp_logger_context* context, int* pec)
+void ctp_logger_close(ctp_logger_context_t* context, int* pec)
 {
 	INI_EC(pec);
 	ctp_close_logger_context(context, pec);
 	free(context);
 }
 
-int ctp_logger_log(ctp_logger_context* context, ctp_log_level level,
+int ctp_logger_log(ctp_logger_context_t* context, ctp_log_level_t level,
 					const char* fmt, ...)
 {
 	va_list args;
@@ -218,19 +218,19 @@ int ctp_logger_log(ctp_logger_context* context, ctp_log_level level,
 	return ec;
 }
 
-void ctp_logger_global_init(const ctp_logger_config* config)
+void ctp_logger_global_init(const ctp_logger_config_t* config)
 {
-	memcpy(&global_context, config, sizeof(ctp_logger_config));
+	memcpy(&global_context, config, sizeof(ctp_logger_config_t));
 	ctp_init_logger_context(&global_context, &global_config, NULL);
 	atomic_store(&global_context_initial_flag, true);
 }
 
-void ctp_logger_global_logv(ctp_log_level level, const char* fmt, va_list args)
+void ctp_logger_global_logv(ctp_log_level_t level, const char* fmt, va_list args)
 {
 	ctp_logger_logv(&global_context, level, fmt, args);
 }
 
-void ctp_logger_global_log(ctp_log_level level, const char* fmt, ...)
+void ctp_logger_global_log(ctp_log_level_t level, const char* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -243,7 +243,7 @@ void ctp_logger_global_close()
 	ctp_close_logger_context(&global_context, NULL);
 }
 
-void ctp_log(ctp_log_level level, const char* fmt, ...)
+void ctp_log(ctp_log_level_t level, const char* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);

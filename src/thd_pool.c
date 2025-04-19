@@ -8,13 +8,13 @@
 
 typedef struct ctp_thdpool
 {
-	ctp_queue* que;
+	ctp_queue_t* que;
 	pthread_barrier_t start_bar;
 	atomic_bool waiting;
 	atomic_bool shutdown;
 	pthread_t* tids;
 	size_t thd_size;
-}  ctp_thdpool;
+}  ctp_thdpool_t;
 
 typedef struct ctp_job
 {
@@ -25,7 +25,7 @@ typedef struct ctp_job
 
 typedef struct thd_arg
 {
-	ctp_thdpool* tp;
+	ctp_thdpool_t* tp;
 } thd_arg;
 
 static void do_job(ctp_job* job)
@@ -41,7 +41,7 @@ void* thread_fn(void* vargs)
 {
 	int* ec = calloc(1, sizeof(int));
 	thd_arg* arg = vargs;
-	ctp_thdpool* tp = arg->tp;
+	ctp_thdpool_t* tp = arg->tp;
 	free(vargs);
 
 	*ec = pthread_barrier_wait(&tp->start_bar);
@@ -83,10 +83,10 @@ ctp_job* ctp_job_create(void (*fn)(void*), void* args,
 /****
  * INTERFACE IMPLAMENTATION
  ****/
-ctp_thdpool* ctp_thdpool_create(size_t thd_size, int* pec)
+ctp_thdpool_t* ctp_thdpool_create(size_t thd_size, int* pec)
 {
 	INI_EC(pec);
-	ctp_thdpool* thd_pool = malloc(sizeof(ctp_thdpool));
+	ctp_thdpool_t* thd_pool = malloc(sizeof(ctp_thdpool_t));
 	ERR_PTR_ERRNO(thd_pool, pec, return NULL);
 	
 	thd_pool->que = ctp_queue_create(pec);
@@ -120,7 +120,7 @@ ctp_thdpool* ctp_thdpool_create(size_t thd_size, int* pec)
 	return thd_pool;
 }
 
-void ctp_thdpool_add_job(ctp_thdpool* thp, void (*fn)(void*), void* args,
+void ctp_thdpool_add_job(ctp_thdpool_t* thp, void (*fn)(void*), void* args,
 						 void (*cleanup)(void*), int* pec)
 {
 	INI_EC(pec);
@@ -131,17 +131,17 @@ void ctp_thdpool_add_job(ctp_thdpool* thp, void (*fn)(void*), void* args,
 	ERR_PEC(pec, return;);
 }
 
-bool ctp_thdpool_empty(ctp_thdpool* thp, int* ec)
+bool ctp_thdpool_empty(ctp_thdpool_t* thp, int* ec)
 {
 	return ctp_queue_empty(thp->que, ec);
 }
 
-void ctp_thdpool_wait(ctp_thdpool* thp, int* ec)
+void ctp_thdpool_wait(ctp_thdpool_t* thp, int* ec)
 {
 	(void)thp, (void)ec;
 }
 
-void ctp_thdpool_destroy(ctp_thdpool* thp, int* pec, int** errlist,
+void ctp_thdpool_destroy(ctp_thdpool_t* thp, int* pec, int** errlist,
 						 size_t* errlist_size)
 {
 	INI_EC(pec);

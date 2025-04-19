@@ -6,14 +6,14 @@
 static 
 void test_queue_create_destory()
 {
-	ctp_queue* que1 = ctp_queue_create(NULL);
+	ctp_queue_t* que1 = ctp_queue_create(NULL);
 	assert(que1);
 	assert(ctp_queue_empty(que1, NULL));
 	void* ret1 = ctp_queue_destroy(que1, NULL, NULL);
 	assert(ret1 == NULL);
 
 	int n = 1;
-	ctp_queue* que2 = ctp_queue_create(&n);
+	ctp_queue_t* que2 = ctp_queue_create(&n);
 	assert(n == 0);
 	assert(que2);
 	n = 1;
@@ -32,7 +32,7 @@ static
 void test_push_try_pop_base()
 {
 	// 忽略错误
-	ctp_queue* que1 = ctp_queue_create(NULL);
+	ctp_queue_t* que1 = ctp_queue_create(NULL);
 	int n1 = 42;
 	void* p = &n1;
 	ctp_queue_push(que1, p, NULL);
@@ -44,7 +44,7 @@ void test_push_try_pop_base()
 	
 	// 接收错误
 	int ec = 1;
-	ctp_queue* que2 = ctp_queue_create(&ec);
+	ctp_queue_t* que2 = ctp_queue_create(&ec);
 	int n2 = 24;
 	void* p2 = &n2;
 	ctp_queue_push(que2, p2, &ec);
@@ -64,7 +64,7 @@ void test_queue_create_destory_with_ele(size_t push_size)
 {
 	// ignore err
 	{
-		ctp_queue* que = ctp_queue_create(NULL);
+		ctp_queue_t* que = ctp_queue_create(NULL);
 		for (size_t i = 0; i < push_size; ++i)
 		{
 			int* n = malloc(sizeof(int));
@@ -85,7 +85,7 @@ void test_queue_create_destory_with_ele(size_t push_size)
 	// with error code
     {
         int ec = 1;
-        ctp_queue* que = ctp_queue_create(&ec);
+        ctp_queue_t* que = ctp_queue_create(&ec);
         assert(ec == 0);
         
         for (size_t i = 0; i < push_size; ++i)
@@ -116,7 +116,7 @@ void test_push_wait_pop_loop(int loop_size)
 {
 	// 忽略错误
 	{
-		ctp_queue* que = ctp_queue_create(NULL);
+		ctp_queue_t* que = ctp_queue_create(NULL);
 		int* array = malloc(loop_size * sizeof(int));
 		for (int i = 0; i < loop_size; ++i)
 		{
@@ -140,7 +140,7 @@ void test_push_wait_pop_loop(int loop_size)
 	// 考虑错误
 	{
 		int ec = 1;
-    	ctp_queue* que = ctp_queue_create(&ec);
+    	ctp_queue_t* que = ctp_queue_create(&ec);
     	assert(ec == 0);
     	int* array = malloc(loop_size * sizeof(int));
     	for (int i = 0; i < loop_size; ++i)
@@ -174,7 +174,7 @@ void test_push_pop_destory(size_t push_size, size_t pop_size)
 	assert(push_size >= pop_size);
 	// 忽略错误
 	{
-		ctp_queue* que = ctp_queue_create(NULL);
+		ctp_queue_t* que = ctp_queue_create(NULL);
 
 		for (size_t i = 0; i < push_size; ++i)
 		{
@@ -206,7 +206,7 @@ void test_push_pop_destory(size_t push_size, size_t pop_size)
 	// 考虑错误
 	{
 		int ec = 1;
-    	ctp_queue* que = ctp_queue_create(&ec);
+    	ctp_queue_t* que = ctp_queue_create(&ec);
     	assert(ec == 0);
 
     	for (size_t i = 0; i < push_size; ++i)

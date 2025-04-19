@@ -17,14 +17,14 @@ typedef struct ctp_queue
 	pthread_mutex_t tail_mtx;
 	pthread_cond_t cond;
 	atomic_bool wait_terminate;
-} ctp_queue;
+} ctp_queue_t;
 
 
-ctp_queue* ctp_queue_create(int* pec)
+ctp_queue_t* ctp_queue_create(int* pec)
 {
 	int ec = 0;
 	INI_EC(pec);
-	ctp_queue* pque = malloc(sizeof(ctp_queue));
+	ctp_queue_t* pque = malloc(sizeof(ctp_queue_t));
 	ERR_PTR_ERRNO(pque, pec, return NULL);
 
 	pque->head = calloc(1, sizeof(ctp_node));
@@ -45,7 +45,7 @@ ctp_queue* ctp_queue_create(int* pec)
 	return pque;
 }
 
-void** ctp_queue_destroy(ctp_queue* pque, size_t* node_size, int* pec)
+void** ctp_queue_destroy(ctp_queue_t* pque, size_t* node_size, int* pec)
 {
 	INI_EC(pec);
 	int ec;
@@ -98,7 +98,7 @@ void** ctp_queue_destroy(ctp_queue* pque, size_t* node_size, int* pec)
 	return ret_array;
 }
 
-void ctp_queue_push(ctp_queue* pque, void* value, int* pec)
+void ctp_queue_push(ctp_queue_t* pque, void* value, int* pec)
 {
 	INI_EC(pec);
 	int ec;
@@ -117,18 +117,18 @@ void ctp_queue_push(ctp_queue* pque, void* value, int* pec)
 	ERR_INT(ec, pec, return);
 
 	// 短暂持头锁
-	//ec = pthread_mutex_lock(&pque->head_mtx);
-	//ERR_INT(ec, pec, return);
+	ec = pthread_mutex_lock(&pque->head_mtx);
+	ERR_INT(ec, pec, return);
 	ec = pthread_cond_signal(&pque->cond);
 	ERR_INT(ec, pec, {
 		pthread_mutex_unlock(&pque->head_mtx);
 		return;
 	});
-	//ec = pthread_mutex_unlock(&pque->head_mtx);
-	//ERR_INT(ec, pec, return);
+	ec = pthread_mutex_unlock(&pque->head_mtx);
+	ERR_INT(ec, pec, return);
 }
 
-static ctp_node* queue_get_tail(ctp_queue* pque, int* pec)
+static ctp_node* queue_get_tail(ctp_queue_t* pque, int* pec)
 {
 	int ec;
 	ec = pthread_mutex_lock(&pque->tail_mtx);
@@ -140,7 +140,7 @@ static ctp_node* queue_get_tail(ctp_queue* pque, int* pec)
 	return cur_tail;
 }
 
-void* ctp_queue_try_pop(ctp_queue* pque, int* pec)
+void* ctp_queue_try_pop(ctp_queue_t* pque, int* pec)
 {
 	INI_EC(pec);
 	int ec;
@@ -174,7 +174,7 @@ void* ctp_queue_try_pop(ctp_queue* pque, int* pec)
 	return ret;
 }
 
-void* ctp_queue_wait_pop(ctp_queue* pque, int* pec)
+void* ctp_queue_wait_pop(ctp_queue_t* pque, int* pec)
 {
 	INI_EC(pec);
 	int ec;
@@ -222,7 +222,7 @@ void* ctp_queue_wait_pop(ctp_queue* pque, int* pec)
 	return ret;
 }
 
-bool ctp_queue_empty(ctp_queue* pque, int* pec)
+bool ctp_queue_empty(ctp_queue_t* pque, int* pec)
 {
 	int ec;
 	INI_EC(pec);
@@ -244,7 +244,7 @@ bool ctp_queue_empty(ctp_queue* pque, int* pec)
 	return ret;
 }
 
-void ctp_queue_all_wait_terminate(ctp_queue* pque, int* pec)
+void ctp_queue_all_wait_terminate(ctp_queue_t* pque, int* pec)
 {
 	int ec;
 	INI_EC(pec);
@@ -266,7 +266,7 @@ void ctp_queue_all_wait_terminate(ctp_queue* pque, int* pec)
 	ERR_INT(ec, pec, return);
 }
 
-void ctp_queue_wait_reset(ctp_queue* pque)
+void ctp_queue_wait_reset(ctp_queue_t* pque)
 {
 	atomic_store(&pque->wait_terminate, true);
 }

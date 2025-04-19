@@ -9,9 +9,9 @@ void test_init_close()
 {
 	{ //sync stdout
 		int ec;
-		ctp_logger_config config;
+		ctp_logger_config_t config;
 		ctp_logger_config_default(&config);
-		ctp_logger_context* context = ctp_logger_init(&config, &ec);
+		ctp_logger_context_t* context = ctp_logger_init(&config, &ec);
 		assert(ec == 0);
 		ctp_logger_close(context, &ec);
 		assert(ec == 0);
@@ -24,10 +24,10 @@ void test_init_close()
 	}
 	{ //async stdout
 		int ec;
-		ctp_logger_config config;
+		ctp_logger_config_t config;
 		ctp_logger_config_default(&config);
 		config.async = true;
-		ctp_logger_context* context = ctp_logger_init(&config, &ec);
+		ctp_logger_context_t* context = ctp_logger_init(&config, &ec);
 		assert(ec == 0);
 		ctp_logger_close(context, &ec);
 		assert(ec == 0);
@@ -40,10 +40,10 @@ void test_init_close()
 	const char* file = "/tmp/test_init_close.log";
 	{ //sync file
 		int ec;
-		ctp_logger_config config;
+		ctp_logger_config_t config;
 		ctp_logger_config_default(&config);
 		config.log_file = file;
-		ctp_logger_context* context = ctp_logger_init(&config, &ec);
+		ctp_logger_context_t* context = ctp_logger_init(&config, &ec);
 		assert(ec == 0);
 		ctp_logger_close(context, &ec);
 		assert(ec == 0);
@@ -51,11 +51,11 @@ void test_init_close()
 	}
 	{ //async file
 		int ec;
-		ctp_logger_config config;
+		ctp_logger_config_t config;
 		ctp_logger_config_default(&config);
 		config.log_file = file;
 		config.async = true;
-		ctp_logger_context* context = ctp_logger_init(&config, &ec);
+		ctp_logger_context_t* context = ctp_logger_init(&config, &ec);
 		assert(ec == 0);
 		ctp_logger_close(context, &ec);
 		assert(ec == 0);
@@ -67,7 +67,7 @@ static
 void test_output(bool async)
 {
 	int ec;
-    ctp_logger_config config;
+    ctp_logger_config_t config;
     ctp_logger_config_default(&config);
 	config.async = async;
     
@@ -76,12 +76,12 @@ void test_output(bool async)
     config.log_file = file_name;
     
     // 初始化日志系统
-    ctp_logger_context* context = ctp_logger_init(&config, &ec);
+    ctp_logger_context_t* context = ctp_logger_init(&config, &ec);
     assert(ec == 0);
     
     // 准备测试数据和预期结果
     const char* level_names[] = {"DEBUG", "INFO", "WARN", "ERROR", "FATAL"};
-    ctp_log_level levels[] = {ctp_debug, ctp_info, ctp_warn, ctp_error, ctp_fatal};
+    ctp_log_level_t levels[] = {ctp_debug, ctp_info, ctp_warn, ctp_error, ctp_fatal};
     
     // 写入不同级别的日志
     for (int i = 0; i < 5; i++) {

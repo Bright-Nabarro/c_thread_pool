@@ -12,7 +12,7 @@
 static 
 void* thd_producer1(void* arg)
 {
-	ctp_queue* que = arg;
+	ctp_queue_t* que = arg;
 	int ec;
 	for (size_t i = 0; i < THD_FN_SCALE; ++i)
 	{
@@ -27,7 +27,7 @@ void* thd_producer1(void* arg)
 static
 void* thd_consume1 (void* arg)
 {
-	ctp_queue* que = arg;
+	ctp_queue_t* que = arg;
 	int ec;
 	for (size_t i = 0; i < THD_FN_SCALE; ++i)
 	{
@@ -42,7 +42,7 @@ void* thd_consume1 (void* arg)
 static
 void test_push_wait_pop_base()
 {
-	ctp_queue* que = ctp_queue_create(NULL);
+	ctp_queue_t* que = ctp_queue_create(NULL);
 	pthread_t p[2];
 	pthread_create(&p[0], NULL, thd_producer1, que);
 	pthread_create(&p[1], NULL, thd_consume1, que);
@@ -62,7 +62,7 @@ atomic_int* consum_arr2;
 static
 void* thd_consume2(void* arg)
 {
-	ctp_queue* que = arg;
+	ctp_queue_t* que = arg;
 	for (size_t i = 0; i < THD_FN_SCALE; ++i)
 	{
 		int* n = ctp_queue_wait_pop(que, NULL);
@@ -80,7 +80,7 @@ void test_push_wait_pop_more_thds(size_t thds)
 
 	pthread_t pros[thds];
 	pthread_t cons[thds];
-	ctp_queue* que = ctp_queue_create(NULL);
+	ctp_queue_t* que = ctp_queue_create(NULL);
 	for (size_t i = 0; i < thds; ++i)
 	{
 		pthread_create(&pros[i], NULL, thd_producer1, que);
@@ -111,7 +111,7 @@ void test_push_wait_pop_more_thds(size_t thds)
 
 struct arg3
 {
-	ctp_queue* que;
+	ctp_queue_t* que;
 	atomic_bool* flag;
 	size_t thds;
 };
@@ -121,7 +121,7 @@ static
 void* thd_consume3(void* arg)
 {
 	struct arg3* a = arg;
-	ctp_queue* que = a->que;
+	ctp_queue_t* que = a->que;
 	atomic_bool* flag = a->flag;
 	size_t thds = a->thds;
 	size_t cnt = 0;
@@ -144,7 +144,7 @@ void* thd_consume3(void* arg)
 static
 void test_push_try_pop(size_t thds)
 {
-	ctp_queue* que = ctp_queue_create(NULL);
+	ctp_queue_t* que = ctp_queue_create(NULL);
 	pthread_t pros[thds];
 	pthread_t cons;
 	for (size_t i = 0; i < thds; ++i)
@@ -181,14 +181,14 @@ struct arg4
 	size_t pop_size;
 	size_t push_size;
 	atomic_bool consume_up;
-	ctp_queue* que;
+	ctp_queue_t* que;
 };
 
 static 
 void* thd_consume4(void* varg)
 {
 	struct arg4* arg = varg;
-	ctp_queue* que = arg->que;
+	ctp_queue_t* que = arg->que;
 	size_t pop_size = arg->pop_size;
 	size_t push_size = arg->push_size;
 	
@@ -215,7 +215,7 @@ static
 void* thd_producer4(void* varg)
 {
 	struct arg4* arg = varg;
-	ctp_queue* que = arg->que;
+	ctp_queue_t* que = arg->que;
 	size_t push_size = arg->push_size;
 	int ec;
 	for (size_t i = 0; i < push_size; ++i)
@@ -234,7 +234,7 @@ void test_queue_wait_terminate_base(size_t push_size, size_t pop_size)
 	assert(pop_size > push_size);
 	// ignore err
 	{
-		ctp_queue* que = ctp_queue_create(NULL);
+		ctp_queue_t* que = ctp_queue_create(NULL);
 		pthread_t consumer, producer;
 		struct arg4* arg = malloc(sizeof(struct arg4));
 		arg->que = que;
@@ -264,7 +264,7 @@ void test_queue_wait_terminate_base(size_t push_size, size_t pop_size)
 // ai gen start
 // 共享参数结构体
 struct mt_test_arg {
-    ctp_queue* que;
+    ctp_queue_t* que;
     size_t push_size;        // 每个生产者产生的元素数量
     size_t pop_size;         // 每个消费者尝试弹出的元素数量
     int thread_idx;          // 线程索引
@@ -280,7 +280,7 @@ struct mt_test_arg {
 static void* thd_consume_mt(void* varg)
 {
     struct mt_test_arg* arg = varg;
-    ctp_queue* que = arg->que;
+    ctp_queue_t* que = arg->que;
     size_t pop_size = arg->pop_size;
     int total_items = arg->producer_count * arg->push_size;
     
@@ -321,7 +321,7 @@ static void* thd_consume_mt(void* varg)
 static void* thd_produce_mt(void* varg)
 {
     struct mt_test_arg* arg = varg;
-    ctp_queue* que = arg->que;
+    ctp_queue_t* que = arg->que;
     size_t push_size = arg->push_size;
     int thread_idx = arg->thread_idx;
     
@@ -353,7 +353,7 @@ static void test_queue_wait_terminate_multi_thread(
     int consumer_count)    // 消费者线程数量
 {
     // 创建队列
-    ctp_queue* que = ctp_queue_create(NULL);
+    ctp_queue_t* que = ctp_queue_create(NULL);
     
     // 创建线程数组
     pthread_t* consumers = malloc(consumer_count * sizeof(pthread_t));
